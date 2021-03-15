@@ -27,8 +27,8 @@ export default {
     data(){
         return {
             loginForm: {
-                username: "",
-                password: ""
+                username: "admin",
+                password: "123456"
             },
             loginFormRules:{
                 username: [
@@ -51,7 +51,10 @@ export default {
                 if (!valid) return;
                 const {data: res} = await this.$http.post("login", this.loginForm)
                 if (res.meta.status !== 200 ) return this.$message.error("登录失败！");
-                return this.$message.success("登录成功")
+                this.$message.success("登录成功")
+                window.sessionStorage.setItem("token", res.data.token)
+                // 通过编程式导航跳转到后台主页，路由地址是/home
+                this.$router.push("/home")
            })
         }
     }
