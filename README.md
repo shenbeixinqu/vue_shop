@@ -40,3 +40,16 @@ npm uninstall --save less-loader
 npm install -D less-loader@7.x
 ```
 
+### promise语法糖
+```
+如果某个方法的返回是promise
+可以使用async await 简化操作
+await 前面的方法加上async
+```
+### token相关
+```
+将登录成功的token，保存到客户端的sessionStorage中
+    项目中出现了登录外的其他API接口,必须在登录之后才能访问
+    token只应在当前网站打开期间有效，所以将token保存在sessionStorage中
+通过编程式导航跳转到后台主页，路由地址是/home
+```
