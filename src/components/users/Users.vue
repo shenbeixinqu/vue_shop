@@ -15,46 +15,104 @@
             ></el-button> </el-input
         ></el-col>
         <el-col :span="4">
-            <el-button type="primary">添加用户</el-button>
+          <el-button type="primary">添加用户</el-button>
         </el-col>
       </el-row>
-      
+      <el-table :data="userList" stripe border>
+        <el-table-column type="index"> </el-table-column>
+        <el-table-column prop="username" label="姓名"> </el-table-column>
+        <el-table-column prop="mobile" label="电话"> </el-table-column>
+        <el-table-column prop="email" label="邮箱"> </el-table-column>
+        <el-table-column prop="role_name" label="角色"> </el-table-column>
+        <el-table-column label="状态">
+          <template slot-scope="scope">
+            <el-switch v-model="scope.row.mg_state"> </el-switch>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作">
+          <template slot-scope="scope">
+            <el-button
+              type="primary"
+              icon="el-icon-edit"
+              size="mini"
+            ></el-button>
+            <el-button
+              type="danger"
+              icon="el-icon-delete"
+              size="mini"
+            ></el-button>
+            <el-tooltip
+              effect="dark"
+              content="分配角色"
+              placement="top"
+              :enterable="false"
+            >
+              <el-button
+                type="warning"
+                icon="el-icon-setting"
+                size="mini"
+              ></el-button>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="queryInfo.pagenum"
+        :page-sizes="[1, 2, 5, 10]"
+        :page-size="queryInfo.pagesize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      >
+      </el-pagination>
     </el-card>
   </div>
 </template>
 
 <script>
 export default {
-    data(){
-        return {
-            // 获取数据参数对象
-            queryInfo: {
-                query:'',
-                pagenum:1,
-                pagesize:2
-            },
-            userList: [],
-            total: 0
-        }
+  data() {
+    return {
+      // 获取数据参数对象
+      queryInfo: {
+        query: "",
+        pagenum: 1,
+        pagesize: 2,
+      },
+      userList: [],
+      total: 0,
+    };
+  },
+  created() {
+    this.getUsersList();
+  },
+  methods: {
+    async getUsersList() {
+      const { data: res } = await this.$http.get("users", {
+        params: this.queryInfo,
+      });
+      if (res.meta.status !== 200) {
+        return this.$message.error("获取用户数据失败");
+      }
+      this.userList = res.data.users;
+      this.total = res.data.total;
     },
-    created(){
-        this.getUsersList()
+    handleSizeChange(newSize) {
+      this.queryInfo.pagesize = newSize;
+      this.getUsersList();
     },
-    methods:{
-        async getUsersList(){
-            const {data:res} = await this.$http.get("users", {
-                params:this.queryInfo
-            })
-            if (res.meta.status !== 200){
-                return this.$message.error("获取用户数据失败")
-            }
-            this.userList = res.data.users
-            this.total = res.data.total
-        }
-    }
-
+    handleCurrentChange(newPage) {
+      this.queryInfo.pagenum = newPage;
+      this.getUsersList();
+    },
+  },
 };
 </script>
 
 <style>
+.el-table {
+  margin-top: 15px;
+  font-size: 12px;
+}
 </style>
