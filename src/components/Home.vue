@@ -21,13 +21,21 @@
       :collapse="collape"
       :collapse-transition="false"
       router
+      :default-active="activePath"
       >
+      <!-- 一级菜单 -->
       <el-submenu :index="''+item.path" v-for="item in menuList" :key="item.id">
         <template slot="title">
           <i :class="iconsObj[item.id]"></i>
           <span>{{item.authName}}</span>
         </template>
-        <el-menu-item :index="'/'+ subItem.path" v-for="subItem in item.children" :key="subItem.id">
+        <!-- 二级菜单 -->
+        <el-menu-item 
+          :index="'/'+ subItem.path" 
+          v-for="subItem in item.children" 
+          :key="subItem.id" 
+          @click="saveNavState('/' + subItem.path)"
+          >
           <template slot="title">
           <i class="el-icon-menu"></i>
           <span>{{subItem.authName}}</span>
@@ -57,12 +65,14 @@ export default {
          "102":"iconfont icon-danju",
          "145":"iconfont icon-baobiao"
        },
-       collape:false
+       collape:false,
+       activePath: ''
     }
   },
   created(){
     // 左侧菜单数据
     this.getMenuList()
+    this.activePath = window.sessionStorage.getItem("activePath")
   },
   methods: {
     logout() {
@@ -76,6 +86,10 @@ export default {
     },
     toggleCollape(){
       this.collape = !this.collape
+    },
+    saveNavState(activePath){
+        window.sessionStorage.setItem("activePath", activePath)
+        this.activePath = activePath
     }
   },
 };
