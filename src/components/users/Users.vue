@@ -8,14 +8,22 @@
     <el-card>
       <el-row :gutter="20">
         <el-col :span="7">
-          <el-input placeholder="请输入内容">
+          <el-input
+            placeholder="请输入内容"
+            v-model="queryInfo.query"
+            clearable
+            @clear="getUsersList"
+          >
             <el-button
               slot="append"
               icon="el-icon-search"
+              @click="getUsersList"
             ></el-button> </el-input
         ></el-col>
         <el-col :span="4">
-          <el-button type="primary">添加用户</el-button>
+          <el-button type="primary" @click="addDialogVisible = true"
+            >添加用户</el-button
+          >
         </el-col>
       </el-row>
       <el-table :data="userList" stripe border>
@@ -26,7 +34,11 @@
         <el-table-column prop="role_name" label="角色"> </el-table-column>
         <el-table-column label="状态">
           <template slot-scope="scope">
-            <el-switch v-model="scope.row.mg_state"> </el-switch>
+            <el-switch
+              v-model="scope.row.mg_state"
+              @change="userStateChange(scope.row)"
+            >
+            </el-switch>
           </template>
         </el-table-column>
         <el-table-column label="操作">
@@ -67,12 +79,54 @@
       >
       </el-pagination>
     </el-card>
+
+    <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="30%" @close="addDialogClosed">
+      <el-form
+        :model="addForm"
+        :rules="addFormRules"
+        ref="addFormRef"
+        label-width="70px"
+      >
+        <el-form-item label="姓名" prop="username">
+          <el-input v-model="addForm.username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="addForm.password"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="addForm.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机" prop="mobile">
+          <el-input v-model="addForm.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="addDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addUser"
+          >确 定</el-button
+        >
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 export default {
   data() {
+    var checkEmail = (rule, value, cb) => {
+      const regEmail = /^[A-Za-z0-9]+([_\.][A-Za-z0-9]+)*@([A-Za-z0-9\-]+\.)+[A-Za-z]{2,6}$/
+      if (regEmail.test(value)){
+        return cb()
+      }
+      cb(new Error("请输入合法的邮箱"))
+    }
+    var checkMobile = (rule, value, cb) => {
+      const regMobile = /^0?(13[0-9]|15[012356789]|17[013678]|18[0-9]|14[57])[0-9]{8}$/
+      if (regMobile.test(value)){
+        return cb()
+      }
+      cb(new Error("请输入正确的手机号"))
+    }
     return {
       // 获取数据参数对象
       queryInfo: {
@@ -82,6 +136,28 @@ export default {
       },
       userList: [],
       total: 0,
+      addDialogVisible: false,
+      addForm:{
+        username:'',
+        password:'',
+      },
+      addFormRules:{
+        username:[
+            { required: true, message: '请输入姓名', trigger: 'blur' },
+            { min: 3, max: 5, message: '姓名长度在 3 到 5 个字符', trigger: 'blur' }
+        ],
+        password:[
+            { required: true, message: '请输入密码', trigger: 'blur' },
+        ],
+        email:[
+            { required: true, message: '请输入邮箱', trigger: 'blur' },
+            { validator: checkEmail, trigger: "blur"}
+        ],
+        mobile:[
+            { required: true, message: '请输入手机号', trigger: 'blur' },
+            { validator: checkMobile, trigger: 'blur'}
+        ],
+      }
     };
   },
   created() {
@@ -106,6 +182,27 @@ export default {
       this.queryInfo.pagenum = newPage;
       this.getUsersList();
     },
+    // 更新用户状态
+    async userStateChange(userinfo) {
+      const { data: res } = await this.$http.put(
+        `users/${userinfo.id}/state/${userinfo.mg_state}`
+      );
+      if (res.meta.status !== 200) {
+        userinfo.mg_state = !userinfo.mg_state;
+        this.$message.error("设置用户状态失败");
+      }
+      this.$message.success("设置用户状态成功");
+    },
+    // 表单的重置操作
+    addDialogClosed(){
+      this.$refs.addFormRef.resetFields()
+    },
+    //添加用户
+    addUser(){
+      this.$refs.addFormRef.validate(value => {
+        if (!value) return
+      })
+    }
   },
 };
 </script>
